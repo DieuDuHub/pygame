@@ -1,22 +1,45 @@
 import sys, time, pygame
 
+from engine import tiles
+
 def main():
     pygame.init()
     size = width, height = 640, 480
     speed = [2, 2]
     black = 0, 0, 0
+    blue = 0, 0, 255
+
+    # Initialize font
+    pygame.font.init()
+    font = pygame.font.Font(None, 36)
 
     screen = pygame.display.set_mode(size)
     pygame.mouse.set_visible(False)
 
-    ball = pygame.image.load("./intro_ball.gif")
+    ball = pygame.image.load("./intro_ball.png")
     ballrect = ball.get_rect()
+    targetrect = pygame.Rect(0, 0, 640, 480)
 
-    print("starting")
-
+    tileset = tiles.Tileset("tiles\level1.png",(16,16),0,0)
+    tilemap = tiles.Tilemap("tiles/base_base.csv",tileset,(128,128))
+    tilemap1 = tiles.Tilemap("tiles/base_top.csv",tileset,(128,128))
+    levelsize = (128*16,128*16)
+    #tilemap.set_random()
+    
+    print("starting with a " + str(tilemap.size[0]) + "-" + str(tilemap.size[1]) + " map")
+    speedscreen = 1
     while 1:
         for event in pygame.event.get():
             if event.type == pygame.QUIT: return
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_UP] and targetrect.top > 0:
+            targetrect = targetrect.move(0, -speedscreen)
+        if keys[pygame.K_DOWN] and targetrect.bottom < levelsize[1] - 480:
+            targetrect = targetrect.move(0, speedscreen)
+        if keys[pygame.K_LEFT] and targetrect.left > 0:
+            targetrect = targetrect.move(-speedscreen, 0)
+        if keys[pygame.K_RIGHT] and targetrect.right < levelsize[0] - 640:
+            targetrect = targetrect.move(speedscreen, 0)                             
 
         ballrect = ballrect.move(speed)
         if ballrect.left < 0 or ballrect.right > width:
@@ -24,8 +47,21 @@ def main():
         if ballrect.top < 0 or ballrect.bottom > height:
             speed[1] = -speed[1]
 
-        screen.fill(black)
+        screen.fill(blue)
+        tilemap.render()
+        tilemap1.render()
+        #screen.fill(black)
+
+        screen.blit(tilemap.image,(0, 0), area=targetrect)
+        screen.blit(tilemap1.image,(0, 0), area=targetrect)
+
         screen.blit(ball, ballrect)
+        
+        # Render targetrect value as text
+        white = (255, 255, 255)
+        text_surface = font.render(f"targetrect: {targetrect}", True, white)
+        screen.blit(text_surface, (10, 10))
+
         time.sleep(0.01)
         pygame.display.flip()
 
