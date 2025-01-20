@@ -6,7 +6,9 @@ class Tilemap:
         self.size = size
         self.tileset = tileset
         self.location = location
-        self.map = np.loadtxt(location, delimiter=',', dtype=int) #np.zeros(size, dtype=int)
+        #self.map = np.loadtxt(location, delimiter=',', dtype=int) #np.zeros(size, dtype=int)
+
+        self.map = location
 
         h, w = self.size
         self.image = pygame.Surface((self.tileset.size[0]*w, self.tileset.size[1]*h), pygame.SRCALPHA)
@@ -16,13 +18,20 @@ class Tilemap:
             self.rect = self.image.get_rect()
 
     def render(self):
-        m, n = self.size[1], self.size[0]
-        for i in range(m):
-            for j in range(n):
-                if self.map[i, j] == -1:
-                    self.map[i, j] = 0
-                tile = self.tileset.tiles[self.map[i, j]] #+1 becasue first tiles = -1
-                self.image.blit(tile, (j*self.tileset.size[0], i*self.tileset.size[1]))
+        m, n = self.size[0], self.size[1]
+        #for i in range(m):
+        #    for j in range(n):
+                #if self.map[i, j] == -1:
+                #    self.map[i, j] = 0
+                #tile = self.tileset.tiles[self.map[i, j]] #+1 becasue first tiles = -1
+        for j in range(m):
+            for i in range(n):   
+                num_tile = self.map[i + self.size[0]* j]
+                num_tile = num_tile - 1
+                if num_tile == -1: # No tile equals transparent part of the png, tile 0
+                    num_tile = 0
+                tile = self.tileset.tiles[num_tile] #+1 becasue first tiles = -1
+                self.image.blit(tile, (i*self.tileset.size[0], j*self.tileset.size[1]))
 
     def set_zero(self):
         self.map = np.zeros(self.size, dtype=int)
@@ -45,6 +54,8 @@ class Tileset:
         self.size = size
         self.margin = margin
         self.spacing = spacing
+        self.width = self.size[0]
+        self.height = self.size[1]
         self.image = pygame.image.load(file)
         self.rect = self.image.get_rect()
         self.tiles = []
@@ -55,8 +66,8 @@ class Tileset:
         self.tiles = []
         x0 = y0 = self.margin
         w, h = self.rect.size
-        dx = self.size[0] + self.spacing
-        dy = self.size[1] + self.spacing
+        dx = self.size[0]
+        dy = self.size[1]
         
         for y in range(y0, h, dy):
             for x in range(x0, w, dx):

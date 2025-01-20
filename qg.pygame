@@ -1,12 +1,14 @@
-import sys, time, pygame
+import sys, time, pygame,json
 
 from engine import tiles
 from engine import player
 from engine import motor
+from engine import foe
 
 def main():
     pygame.init()
-    size = width, height = 640, 480
+
+    size = width, height = 1024, 768
     black = 0, 0, 0
     blue = 0, 0, 255
 
@@ -17,17 +19,31 @@ def main():
     screen = pygame.display.set_mode(size)
     pygame.mouse.set_visible(False)
 
-    player1 = player.Player("Intro_ball.png")
+     # Initialize joystick
+    pygame.joystick.init()
+    if pygame.joystick.get_count() > 0:
+        joystick = pygame.joystick.Joystick(0)
+        joystick.init()
+    else:
+        joystick = None
 
-    targetrect = pygame.Rect(0, 0, 640, 480)
+    player1 = player.Player("Intro_ball.png",(32,32))
+
+    targetrect = pygame.Rect(0, 0, width, height)
+
+    # Lire et analyser le fichier base.tmj
+    with open('tiles/base.tmj', 'r') as file:
+        base_tmj_data = json.load(file)
+
+    layers = base_tmj_data.get("layers", [])
 
     tileset = tiles.Tileset("tiles/level1.png",(16,16),0,0)
-    tilemap = tiles.Tilemap("tiles/base_base.csv",tileset,(128,128))
-    tilemap1 = tiles.Tilemap("tiles/base_top.csv",tileset,(128,128))
-    levelsize = (128*16,128*16)
+    tilemap = tiles.Tilemap(layers[1].get("data", []),tileset,(128,128))
+    tilemap1 = tiles.Tilemap(layers[0].get("data", []),tileset,(128,128))
+    levelsize = (128*tileset.width,128*tileset.height)
     #tilemap.set_random()
     
-    motor1 = motor.Motor(player1,tilemap1,[tilemap,tilemap1])
+    motor1 = motor.Motor(player1,tilemap,[tilemap1,tilemap],(width,height))
     tilemap.render()
     tilemap1.render()
     
@@ -36,20 +52,30 @@ def main():
     while 1:
         for event in pygame.event.get():
             if event.type == pygame.QUIT: return
+        
         keys = pygame.key.get_pressed()
-        #if keys[pygame.K_UP] and targetrect.top > 0:
-        #    targetrect = targetrect.move(0, -speedscreen)
+
         if keys[pygame.K_RIGHT]:
             motor1.set_speed(2)
         elif keys[pygame.K_LEFT]:
             motor1.set_speed(-2)
         else:
             motor1.set_speed(0)
-        if keys[pygame.K_UP]:
-            motor1.jump()                            
+
+        if keys[pygame.K_UP] or keys in (97, 98):  # A and B keys:
+            motor1.jump()  
+
+        if joystick:
+            if joystick.get_button(0):  # Button A on the joystick
+                motor1.jump()     
+            if joystick.get_axis(0) > 0.5:
+                motor1.set_speed(2)
+            elif joystick.get_axis(0) < -0.5:
+                motor1.set_speed(-2)
+            else:
+                motor1.set_speed(0)                    
 
         #motor1.targetrect = targetrect
-
         motor1.move_and_collide()
 
         screen.fill(blue)
