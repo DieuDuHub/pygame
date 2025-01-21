@@ -8,8 +8,8 @@ class Player:
         self.width = size[0]
         self.height = size[1]
         self.rect = self.image.get_rect()
-        self.rect.left = 320
-        self.rect.top = 200
+        self.rect.left = 400
+        self.rect.top = 140
 
     def move(self, speed):
         self.rect = self.rect.move(speed)

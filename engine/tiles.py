@@ -30,8 +30,17 @@ class Tilemap:
                 num_tile = num_tile - 1
                 if num_tile == -1: # No tile equals transparent part of the png, tile 0
                     num_tile = 0
-                tile = self.tileset.tiles[num_tile] #+1 becasue first tiles = -1
-                self.image.blit(tile, (i*self.tileset.size[0], j*self.tileset.size[1]))
+               
+                if num_tile & 0x80000000: is_mirror_v = True 
+                else: is_mirror_v = False
+
+                if num_tile & 0x40000000: is_mirror_h = True
+                else: is_mirror_h = False
+
+                num_tile = num_tile & 0x000000FF
+                
+                tile = self.tileset.tiles[num_tile] #+1 because first tiles = -1
+                self.image.blit(pygame.transform.flip(tile, is_mirror_v, is_mirror_h), (i*self.tileset.size[0], j*self.tileset.size[1]))
 
     def set_zero(self):
         self.map = np.zeros(self.size, dtype=int)

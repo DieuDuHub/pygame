@@ -8,7 +8,7 @@ from engine import foe
 def main():
     pygame.init()
 
-    size = width, height = 1024, 768
+    size = width, height = 640, 480
     black = 0, 0, 0
     blue = 0, 0, 255
 
@@ -37,6 +37,9 @@ def main():
 
     layers = base_tmj_data.get("layers", [])
 
+
+    fixedbg = pygame.image.load("fixedbg.jpg")
+    fixedrect = fixedbg.get_rect()
     tileset = tiles.Tileset("tiles/level1.png",(16,16),0,0)
     tilemap = tiles.Tilemap(layers[1].get("data", []),tileset,(128,128))
     tilemap1 = tiles.Tilemap(layers[0].get("data", []),tileset,(128,128))
@@ -56,9 +59,9 @@ def main():
         keys = pygame.key.get_pressed()
 
         if keys[pygame.K_RIGHT]:
-            motor1.set_speed(2)
+            motor1.set_speed(4)
         elif keys[pygame.K_LEFT]:
-            motor1.set_speed(-2)
+            motor1.set_speed(-4)
         else:
             motor1.set_speed(0)
 
@@ -69,16 +72,17 @@ def main():
             if joystick.get_button(0):  # Button A on the joystick
                 motor1.jump()     
             if joystick.get_axis(0) > 0.5:
-                motor1.set_speed(2)
+                motor1.set_speed(4)
             elif joystick.get_axis(0) < -0.5:
-                motor1.set_speed(-2)
+                motor1.set_speed(-4)
             else:
                 motor1.set_speed(0)                    
 
         #motor1.targetrect = targetrect
         motor1.move_and_collide()
 
-        screen.fill(blue)
+        #screen.fill(blue)
+        screen.blit(fixedbg, fixedrect)
 
         motor1.render(screen)
 

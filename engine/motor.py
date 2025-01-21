@@ -20,14 +20,23 @@ class Motor:
         self.gravity = gravity
 
     def collide_check(self,dx,dy):
+
+        # Check if out of screen map so return no collide check or superior to map size
+        if (self.player.rect.top + self.targetrect.top + dy < 0 or self.player.rect.left + self.targetrect.left + dx < 0 
+            or self.player.rect.top + self.targetrect.top + dy > self.map.size[0] * self.map.tileset.height or self.player.rect.left + self.targetrect.left + dx > self.map.size[1] * self.map.tileset.width):
+            return False
+
+        map_number =(((self.player.rect.top + self.targetrect.top + dy)// self.map.tileset.height) * self.map.size[0]) + ((self.player.rect.left + self.targetrect.left + dx) // self.map.tileset.width) 
+    
+        # Supress MirrorV mirror H and rotate value from map_number
+        map_number = map_number & 0x00FFFFFF
+
+        # GRab tile number to check if it is a block or not
         next_tile = self.map.map[
-            (((self.player.rect.top + self.targetrect.top + dy)
-                // self.map.tileset.height) * self.map.size[0])
-                + ((self.player.rect.left + self.targetrect.left + dx) 
-                //self.map.tileset.width) 
+            map_number
             ]
-       
-        if (next_tile > 0):
+      
+        if (next_tile > 1):#1 means no tiles 
             return True
         
         return False
@@ -36,8 +45,9 @@ class Motor:
         self.speed[0] = dx
 
     # Manage the movement of the player and the sprite move or screen move following player location around 320/240
-    def compensate_and_move(self):
+    def compensate_collide_and_move(self):
         
+        # check how and if move Up or Down or Left or Right
         speedx  = self.speed[0]
         if (self.speed[0] < 0): # Move left
             if self.collide_check(0,self.player.height // 2): #check left
@@ -95,15 +105,13 @@ class Motor:
         # Apply gravity if not jumping
         if not self.is_jumping:
             self.speed[1] += self.gravity
-        #elif not self.is_jumping and self.collide_check(8,16):
-        #    self.speed[1]  = 0
-            #self.targetrect[1] =  int(self.targetrect[1] / 16) * 16
+        # check if on top of jump so stop jumping
         elif self.is_jumping:
             self.speed[1] += self.gravity
             if self.speed[1] >= 0:
                 self.is_jumping = False
-
-        self.compensate_and_move()
+        # Define screen or sprite movement and check collide
+        self.compensate_collide_and_move()
 
     def jump(self):
         if not self.is_jumping:
