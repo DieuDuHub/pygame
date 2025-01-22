@@ -15,6 +15,9 @@ class Motor:
         self.jump_speed = 10
         self.gravity = 0.1
 
+    def set_life_manager(self,lifemanager):
+        self.life_manager = lifemanager
+
     def set_speed_and_gravity(self,speed,gravity):
         self.speed = speed
         self.gravity = gravity
@@ -112,6 +115,8 @@ class Motor:
                 self.is_jumping = False
         # Define screen or sprite movement and check collide
         self.compensate_collide_and_move()
+
+        self.life_manager.update_life(self.targetrect)
 
     def jump(self):
         if not self.is_jumping:

@@ -4,6 +4,7 @@ from engine import tiles
 from engine import player
 from engine import motor
 from engine import foe
+from engine import lifemanager
 
 def main():
     pygame.init()
@@ -37,16 +38,21 @@ def main():
 
     layers = base_tmj_data.get("layers", [])
 
+    screen_height = base_tmj_data.get("height",int)
+    screen_width = base_tmj_data.get("width",int)
+    tilesize =  base_tmj_data.get("tilewidth",int)
 
     fixedbg = pygame.image.load("fixedbg.jpg")
     fixedrect = fixedbg.get_rect()
-    tileset = tiles.Tileset("tiles/level1.png",(16,16),0,0)
-    tilemap = tiles.Tilemap(layers[1].get("data", []),tileset,(128,128))
-    tilemap1 = tiles.Tilemap(layers[0].get("data", []),tileset,(128,128))
-    levelsize = (128*tileset.width,128*tileset.height)
-    #tilemap.set_random()
+    tileset = tiles.Tileset("tiles/level1.png",(tilesize,tilesize),0,0)
+    tilemap = tiles.Tilemap(layers[1].get("data", []),tileset,(screen_width,screen_height))
+    tilemap1 = tiles.Tilemap(layers[0].get("data", []),tileset,(screen_width,screen_height))
+    levelsize = (screen_width*tileset.width,screen_height*tileset.height)
+
+    life_manager = lifemanager.LifeManager(layers[2].get("objects", []),tilemap)
     
     motor1 = motor.Motor(player1,tilemap,[tilemap1,tilemap],(width,height))
+    motor1.set_life_manager(life_manager)
     tilemap.render()
     tilemap1.render()
     
@@ -85,6 +91,8 @@ def main():
         screen.blit(fixedbg, fixedrect)
 
         motor1.render(screen)
+
+        life_manager.render(screen)
 
         player1.render(screen)
         

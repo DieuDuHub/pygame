@@ -11,7 +11,7 @@
     "last.exportedFilePath": "C:/Users/MDEBRAY/OneDrive - Allianz/dev/pygame/tiles",
     "last.imagePath": "C:/Users/MDEBRAY/OneDrive - Allianz/dev/pygame/tiles",
     "map.height": 128,
-    "map.lastUsedExportFilter": "Fichiers CSV (*.csv)",
+    "map.lastUsedExportFilter": "Fichiers de carte JSON (*.tmj *.json)",
     "map.lastUsedFormat": "tmx",
     "map.renderOrder": "1",
     "map.tileHeight": 15,
@@ -20,6 +20,7 @@
     "openFiles": [
     ],
     "project": "gab.tiled-project",
+    "property.type": "int",
     "recentFiles": [
     ],
     "tileset.lastUsedFormat": "tsx",
