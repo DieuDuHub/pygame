@@ -9,6 +9,7 @@ class Animation(Enum):
     JUMP = 3
     ATTACK = 4
     JUMP_ATTACK = 5
+    FALL = 6
 
 class Player:
     def __init__(self, image, framesize=(8,2),size=(32, 32)):
@@ -36,9 +37,9 @@ class Player:
         self.rect.width = 32
         self.rect.height = 32
 
-        self.anim_step = [(4,5),(0,3)] #list of frame by id, if 0 only frame 4 and 5 are used, if 1 frame 0 to 3 are used (WALK)   
+        self.anim_step = [(2,3),(0,3),(1,1),(1,1),(1,1),(1,1),(6,6)] #list of frame by id, if 0 only frame 4 and 5 are used, if 1 frame 0 to 3 are used (WALK)   
 
-        self.current_frame = self.anim_step[self.status.value][0]
+        self.current_frame = self.anim_step[self.status.value][0] * self.anim_speed
 
     def set_direction(self,direction):
         if (direction == 1 ): self.direction = True
@@ -55,9 +56,9 @@ class Player:
     def render(self, screen):  
         screen.blit(pygame.transform.flip(self.anim[self.current_frame // self.anim_speed], self.direction, False), self.rect)
 
-        if (self.current_frame // self.anim_speed < self.anim_step[self.status.value][1]):
+        if (self.current_frame // self.anim_speed < self.anim_step[self.status.value][1] ):
             self.current_frame += 1
         else:
             self.current_frame = self.anim_step[self.status.value][0] * self.anim_speed
 
-        #print(self.current_frame // self.anim_speed)
+        #print(self.current_frame // self.anim_speed , " ", self.anim_step[self.status.value][0] ," ", self.anim_step[self.status.value][1])

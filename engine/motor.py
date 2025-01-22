@@ -67,9 +67,9 @@ class Motor:
                 self.player.set_status(1)  
             else:
                 self.player.set_status(1)  
+
         elif (self.speed[0] > 0): # Move Right
             self.player.set_direction(0)
-            self.player.set_status(0)
             if (self.collide_check(self.player.width ,self.player.height // 2)): #check right
                 self.speed[0] = speedx = 0
             elif (self.player.rect[0] < self.screen_width / 2): #if sprite was on left , let it move to middle
@@ -82,6 +82,7 @@ class Motor:
                 self.player.set_status(1)
             else:
                 self.player.set_status(1)  #Default from frame move
+
         else:
             self.player.set_status(0)
 
@@ -92,7 +93,7 @@ class Motor:
                 self.is_jumping = False
             elif (self.player.rect[1] > self.screen_height / 2): #if sprite was on bottopn , let it move to middle
                 self.player.rect[1] += self.speed[1]
-                speedy = 0
+                speedy = 0                
             elif (self.targetrect[1] <= 0): # already block
                 self.player.rect[1] += self.speed[1]
                 speedy = 0
@@ -105,10 +106,14 @@ class Motor:
                 self.player.rect[1] = int(self.player.rect[1] / self.map.tileset.height) * self.map.tileset.height
             elif (self.player.rect[1] < self.screen_height / 2): #if sprite was on bottopn , let it move to middle
                 self.player.rect[1] += self.speed[1]
+                self.player.set_status(6)
                 speedy = 0
             elif (self.targetrect[1] >= self.map.size[0] * self.map.tileset.size[1] - self.screen_height):
                 self.player.rect[1] += self.speed[1]
+                self.player.set_status(6)
                 speedy = 0
+            else:
+                self.player.set_status(6)
 
         self.targetrect = self.targetrect.move(
          speedx,
