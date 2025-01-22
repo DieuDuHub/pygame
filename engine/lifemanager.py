@@ -7,7 +7,7 @@ class LifeManager:
     def __init__(self, object_layer,colision_map, size=(16, 16)):
         self.foes = []
         for obj in object_layer:
-            print(obj)
+            #print(obj)
             # 1 properties = name of foe
             foe_object = obj["properties"]
             x = obj["x"]

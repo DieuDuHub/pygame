@@ -28,7 +28,7 @@ def main():
     else:
         joystick = None
 
-    player1 = player.Player("Intro_ball.png",(32,32))
+    player1 = player.Player("Bonk.png",(8,2),(32,32))
 
     targetrect = pygame.Rect(0, 0, width, height)
 

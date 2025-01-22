@@ -12,7 +12,7 @@ class Motor:
         self.screen_height = screen_size[1]
 
         self.is_jumping = False
-        self.jump_speed = 10
+        self.jump_speed = 5
         self.gravity = 0.1
 
     def set_life_manager(self,lifemanager):
@@ -53,24 +53,37 @@ class Motor:
         # check how and if move Up or Down or Left or Right
         speedx  = self.speed[0]
         if (self.speed[0] < 0): # Move left
+            self.player.set_direction(1)
             if self.collide_check(0,self.player.height // 2): #check left
                 self.speed[0] = speedx = 0
+                self.player.set_status(0)
             elif (self.player.rect[0] > self.screen_width / 2): #if sprite was on right , let it move to middle
                 self.player.rect[0] += speedx
                 speedx = 0
+                self.player.set_status(1)
             elif (self.targetrect[0] <= 0): # already block
                 self.player.rect[0] += speedx
                 speedx = 0
-            
+                self.player.set_status(1)  
+            else:
+                self.player.set_status(1)  
         elif (self.speed[0] > 0): # Move Right
+            self.player.set_direction(0)
+            self.player.set_status(0)
             if (self.collide_check(self.player.width ,self.player.height // 2)): #check right
                 self.speed[0] = speedx = 0
             elif (self.player.rect[0] < self.screen_width / 2): #if sprite was on left , let it move to middle
                 self.player.rect[0] += self.speed[0]
                 speedx = 0
+                self.player.set_status(1)
             elif (self.targetrect[0] >= self.map.size[1] * self.map.tileset.size[0] - self.screen_width): # already block 
                 self.player.rect[0] += self.speed[0]
                 speedx = 0
+                self.player.set_status(1)
+            else:
+                self.player.set_status(1)  #Default from frame move
+        else:
+            self.player.set_status(0)
 
         speedy = self.speed[1] # self.speed[1] is huge for the global gravity so need speedy for temporary not applying it
         if (self.speed[1] < 0): # Move Up

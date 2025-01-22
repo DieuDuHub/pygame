@@ -18,7 +18,7 @@ class Foe:
     def __init__(self, object,x,y,colision_map):
 
         for o in object:
-            print(o)
+            #print(o)
 
             if (o["name"] == "image"):
                 image = o["value"]
@@ -52,7 +52,7 @@ class Foe:
         self.map = colision_map
         self.option_type = OptionType(option_type)
         self.is_jumping = False
-        self.init = 1
+        self.after_jump = True # already in the air
 
     def move(self, x,y):
         self.rect.left = self.origin_x - x
@@ -79,28 +79,29 @@ class Foe:
 
     def interact(self):
         # gravity by default
-        if (not self.is_jumping and not self.collide_check(self.width/2,self.height) and ((self.init == 1) or self.option_type == OptionType.ALLOW_FALLING or self.option_type == OptionType.ALLOW_BOTH)):
+        if (not self.is_jumping and not self.collide_check(self.width/2,self.height) and (self.after_jump or self.option_type == OptionType.ALLOW_FALLING or self.option_type == OptionType.ALLOW_BOTH)):
             self.speedy += self.gravity
             if (self.speedy >= 10):
                 self.speedy = 10
             self.origin_y += self.speedy
-        elif (self.init == 1 and self.collide_check(self.width/2,self.height)): #♥if init then let him touch the ground then check option_type
-            self.init = 0
+        elif (self.after_jump and self.collide_check(self.width/2,self.height)): #♥if init then let him touch the ground then check option_type
+            self.after_jump = False
         elif (self.is_jumping):
             self.speedy += self.gravity
             self.origin_y += self.speedy
             if (self.collide_check(self.width/2,0) or self.speedy > 0):
                 self.is_jumping = False
+                self.after_jump = True
         else:
             self.speedy = 0
             self.origin_y = (self.origin_y // self.map.tileset.height) * self.map.tileset.height
 
-        if (self.movement_type == MovementType.HORIZONTAL and not self.init == 1 ): # if move horizontal allow
+        if (self.movement_type == MovementType.HORIZONTAL):# and not self.after_jump): # if move horizontal allow
             # Left / Right
-            if (self.direction ==0): # Left
+            if (self.direction == 0): # Left
                 self.origin_x -= self.speedx
-                # check if collide left and not jumping and allow to jump
-                if (self.collide_check(0,self.height/2) and not self.is_jumping and (self.option_type == OptionType.ALLOW_BOTH or self.option_type == OptionType.ALLOW_JUMPING)):# or not self.collide_check(0,16)): #if block left or there is an hole left
+                # check if collide left and not jumping and allow to jump, avoid to re collide and rejump if meeting a wall while flying with atfer_jump
+                if (self.collide_check(0,self.height/2) and not self.after_jump and  not self.is_jumping and (self.option_type == OptionType.ALLOW_BOTH or self.option_type == OptionType.ALLOW_JUMPING)):# or not self.collide_check(0,16)): #if block left or there is an hole left
                     #self.direction = 1
                     # check if jump feasible 2 tiles up
                     if (not self.collide_check(0,-2 * self.height) and not self.collide_check(0,-3 * self.height)): # 2 next tiles free so jump
@@ -109,20 +110,31 @@ class Foe:
                     else:
                         self.direction=1
                 # check if block by left or empty tile in left bottom
-                elif (not self.is_jumping and self.collide_check(0,self.height/2)) or ((self.option_type != OptionType.ALLOW_FALLING and self.option_type != OptionType.ALLOW_BOTH) and not self.collide_check(0,self.height)):
+                elif (not self.is_jumping and self.collide_check(0,self.height/2)):
                     self.direction=1
+                # test on lefto to go down if only 1 tile of jump
+                elif (not self.collide_check(0,self.height) and self.collide_check(0,self.height*2)):
+                    self.after_jump = True
+                elif ((self.option_type != OptionType.ALLOW_FALLING and self.option_type != OptionType.ALLOW_BOTH) and not self.collide_check(0,self.height)):
+                    self.direction=1
+
             elif (self.direction ==1):
                 self.origin_x += self.speedx
-                if (self.collide_check(self.width,self.height/2) and not self.is_jumping and (self.option_type == OptionType.ALLOW_BOTH or self.option_type == OptionType.ALLOW_JUMPING)):# or not self.collide_check(0,16)): #if block left or there is an hole left
+                # check if jump feasible and if not jumping and allow to jump, avoid to re collide and rejump if meeting a wall while flying with atfer_jump
+                if (self.collide_check(self.width,self.height/2) and not self.after_jump and not self.is_jumping and (self.option_type == OptionType.ALLOW_BOTH or self.option_type == OptionType.ALLOW_JUMPING)):# or not self.collide_check(0,16)): #if block left or there is an hole left
                     #self.direction = 1
-                    # check if jump feasible
                     if (not self.collide_check(self.width,-2 * self.height) and not self.collide_check(self.width,-3 * self.height)): # 2 next tiles free so jump
                         self.speedy -= self.jump_speed
                         self.is_jumping = True
                     else:
                         self.direction=0
                 # check if block right and empty tile for right bottom
-                elif (not self.is_jumping and self.collide_check(self.width,self.height/2)) or ((self.option_type != OptionType.ALLOW_FALLING and self.option_type != OptionType.ALLOW_BOTH) and not self.collide_check(self.width,self.height)):
+                elif (not self.is_jumping and self.collide_check(self.width,self.height/2)):
+                    self.direction=0
+                # test on right
+                elif (not self.collide_check(self.width,self.height) and self.collide_check(self.width,self.height*2)):
+                    self.after_jump = True
+                elif ((self.option_type != OptionType.ALLOW_FALLING and self.option_type != OptionType.ALLOW_BOTH) and not self.collide_check(self.width,self.height)):
                     self.direction=0
 
 
