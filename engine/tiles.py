@@ -44,14 +44,14 @@ class Tilemap:
 
     def set_zero(self):
         self.map = np.zeros(self.size, dtype=int)
-        print(self.map)
-        print(self.map.shape)
+        #print(self.map)
+        #print(self.map.shape)
         self.render()
 
     def set_random(self):
         n = len(self.tileset.tiles)
         self.map = np.random.randint(n, size=self.size)
-        print(self.map)
+        #print(self.map)
         self.render()
 
     def __str__(self):

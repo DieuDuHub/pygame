@@ -22,6 +22,25 @@ class Motor:
         self.speed = speed
         self.gravity = gravity
 
+    def get_tile(self,dx,dy):
+
+        # Check if out of screen map so return no collide check or superior to map size
+        if (self.player.rect.top + self.targetrect.top + dy < 0 or self.player.rect.left + self.targetrect.left + dx < 0 
+            or self.player.rect.top + self.targetrect.top + dy > self.map.size[0] * self.map.tileset.height or self.player.rect.left + self.targetrect.left + dx > self.map.size[1] * self.map.tileset.width):
+            return False
+
+        map_number =(((self.player.rect.top + self.targetrect.top + dy)// self.map.tileset.height) * self.map.size[0]) + ((self.player.rect.left + self.targetrect.left + dx) // self.map.tileset.width) 
+    
+        # Supress MirrorV mirror H and rotate value from map_number
+        map_number = map_number & 0x00FFFFFF
+
+        # GRab tile number to check if it is a block or not
+        next_tile = self.map.map[
+            map_number
+            ]
+      
+        return next_tile
+
     def collide_check(self,dx,dy):
 
         # Check if out of screen map so return no collide check or superior to map size
@@ -94,16 +113,27 @@ class Motor:
             elif (self.player.rect[1] > self.screen_height / 2): #if sprite was on bottopn , let it move to middle
                 self.player.rect[1] += self.speed[1]
                 speedy = 0                
+                self.player.set_status(2)
             elif (self.targetrect[1] <= 0): # already block
                 self.player.rect[1] += self.speed[1]
                 speedy = 0
+                self.player.set_status(2)
+            else:
+                self.player.set_status(2)
 
         elif (self.speed[1] > 0): # Move Down
-            if (self.collide_check(self.player.width // 2,self.player.height)): #check bottom
-                self.speed[1] = speedy = 0
-                self.is_jumping = False
-                self.targetrect[1] =  int(self.targetrect[1] / self.map.tileset.height) * self.map.tileset.height
-                self.player.rect[1] = int(self.player.rect[1] / self.map.tileset.height) * self.map.tileset.height
+            next_tile = self.get_tile(self.player.width // 2,self.player.height)
+            if (next_tile > 1): #check bottom
+                # Special tile for jumping ?
+                print(next_tile)
+                if (next_tile == 7): # Jump tile
+                    self.jump()
+                    
+                else:
+                    self.speed[1] = speedy = 0
+                    self.is_jumping = False
+                    self.targetrect[1] =  int(self.targetrect[1] / self.map.tileset.height) * self.map.tileset.height
+                    self.player.rect[1] = int(self.player.rect[1] / self.map.tileset.height) * self.map.tileset.height
             elif (self.player.rect[1] < self.screen_height / 2): #if sprite was on bottopn , let it move to middle
                 self.player.rect[1] += self.speed[1]
                 self.player.set_status(6)

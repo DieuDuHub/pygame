@@ -28,7 +28,7 @@ def main():
     else:
         joystick = None
 
-    player1 = player.Player("Bonk.png",(8,2),(32,32))
+    player1 = player.Player("bonk.png",(8,2),(32,32))
 
     targetrect = pygame.Rect(0, 0, width, height)
 
@@ -56,33 +56,52 @@ def main():
     tilemap.render()
     tilemap1.render()
     
-    print("starting with a " + str(tilemap.size[0]) + "-" + str(tilemap.size[1]) + " map")
+    speed = 4
+
+    #print("starting with a " + str(tilemap.size[0]) + "-" + str(tilemap.size[1]) + " map")
     speedscreen = 1
+
+    # debug
+    select = 0
+    params = [10,4,5,50]
+
     while 1:
+        motor1.set_speed(0)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT: return
         
         keys = pygame.key.get_pressed()
 
         if keys[pygame.K_RIGHT]:
-            motor1.set_speed(4)
+            motor1.set_speed(speed)
         elif keys[pygame.K_LEFT]:
-            motor1.set_speed(-4)
-        else:
-            motor1.set_speed(0)
+            motor1.set_speed(-speed)
 
         if keys[pygame.K_UP] or keys in (97, 98):  # A and B keys:
             motor1.jump()  
 
+    
         if joystick:
-            if joystick.get_button(0):  # Button A on the joystick
-                motor1.jump()     
+            if  event.type == pygame.JOYBUTTONDOWN:
+                #for button in range(joystick.get_numbuttons()):
+                #    if joystick.get_button(button):
+                #        print(f"Button {button} pressed")
+                if joystick.get_button(3):  # Button A on the joystick A:3 B:4:Y:5 X:6 : R:8 L:7 ZR:14 : ZL:13 Select : 9 Start : 10
+                    motor1.jump()  
+                if joystick.get_button(9):  # Button A on the joystick A:3 B:4:Y:5 X:6 : R:8 L:7 ZR:14 : ZL:13 Select : 9 Start : 10
+                    select += 1
+                    if (select > 3):
+                        select = 0
+                if joystick.get_button(14):  # Button A on the joystick A:3 B:4:Y:5 X:6 : R:8 L:7 ZR:14 : ZL:13 Select : 9 Start : 10
+                    params[select] += 1
+                if joystick.get_button(13):  # Button A on the joystick A:3 B:4:Y:5 X:6 : R:8 L:7 ZR:14 : ZL:13 Select : 9 Start : 10
+                    params[select] -= 1
             if joystick.get_axis(0) > 0.5:
-                motor1.set_speed(4)
+                motor1.set_speed(speed)
             elif joystick.get_axis(0) < -0.5:
-                motor1.set_speed(-4)
-            else:
-                motor1.set_speed(0)                    
+                motor1.set_speed(-speed)
+                
 
         #motor1.targetrect = targetrect
         motor1.move_and_collide()
@@ -96,16 +115,16 @@ def main():
 
         player1.render(screen)
         
+        motor1.jump_speed = params[0]
+        speed = params[1]
+        player1.anim_speed = params[2]
+        motor1.gravity = params[3] / 100
+
+        debug = str(select) + " " + str(motor1.jump_speed) + " " + str(speed ) + " " +str(player1.anim_speed) + " " + str(motor1.gravity)
         # Render targetrect value as text
         white = (255, 255, 255)
-        text_surface = font.render(f"targetrect: {motor1.targetrect}", True, white)
+        text_surface = font.render(f"targetrect: {debug}", True, white)
         screen.blit(text_surface, (10, 10))
-        text_surface = font.render(f"spriterect: {motor1.player.rect}", True, white)
-        screen.blit(text_surface, (10, 30))
-        text_surface = font.render(f"spritespeed: {motor1.speed}", True, white)
-        screen.blit(text_surface, (10, 60))
-        text_surface = font.render(f"isjumping: {motor1.is_jumping}", True, white)
-        screen.blit(text_surface, (10, 90))
 
         time.sleep(0.01)
         pygame.display.flip()
