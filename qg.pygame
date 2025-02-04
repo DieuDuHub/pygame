@@ -28,24 +28,31 @@ def main():
     else:
         joystick = None
 
-    player1 = player.Player("bonk.png",(8,2),(32,32))
+    player1 = player.Player("bonk.png",(8,2),(32,32)) # Plyaer , nb of sprite W and H, size W and H
 
     targetrect = pygame.Rect(0, 0, width, height)
 
     # Lire et analyser le fichier base.tmj
-    with open('tiles/base.tmj', 'r') as file:
+    with open('tiles/test.tmj', 'r') as file:
         base_tmj_data = json.load(file)
 
     layers = base_tmj_data.get("layers", [])
+
+    with open('tiles/level1.tsj', 'r') as file:
+        base_tsj_data = json.load(file)
+
+    tiles_tjs = base_tsj_data.get("tiles", [])
 
     screen_height = base_tmj_data.get("height",int)
     screen_width = base_tmj_data.get("width",int)
     tilesize =  base_tmj_data.get("tilewidth",int)
 
+    print("laoding tileset: " + str(screen_width) + "x" + str(screen_height) + " tilesize: " + str(tilesize))
+
     fixedbg = pygame.image.load("fixedbg.jpg")
     fixedrect = fixedbg.get_rect()
     tileset = tiles.Tileset("tiles/level1.png",(tilesize,tilesize),0,0)
-    tilemap = tiles.Tilemap(layers[1].get("data", []),tileset,(screen_width,screen_height))
+    tilemap = tiles.Tilemap(layers[1].get("data", []),tileset,(screen_width,screen_height),tiles_tjs)
     tilemap1 = tiles.Tilemap(layers[0].get("data", []),tileset,(screen_width,screen_height))
     levelsize = (screen_width*tileset.width,screen_height*tileset.height)
 
@@ -63,8 +70,12 @@ def main():
 
     # debug
     select = 0
-    params = [10,4,5,50]
-
+    # 0: jump_speed
+    # 1: speed
+    # 2: player1.anim_speed
+    # 3: motor1.gravity
+    params = [10,4,5,50]  # [10,4,5,50]
+    
     while 1:
         motor1.set_speed(0)
 
@@ -81,7 +92,6 @@ def main():
         if keys[pygame.K_UP] or keys in (97, 98):  # A and B keys:
             motor1.jump()  
 
-    
         if joystick:
             if  event.type == pygame.JOYBUTTONDOWN:
                 #for button in range(joystick.get_numbuttons()):
@@ -102,10 +112,10 @@ def main():
             elif joystick.get_axis(0) < -0.5:
                 motor1.set_speed(-speed)
                 
-
         #motor1.targetrect = targetrect
         motor1.move_and_collide()
 
+        tilemap.render_animation()
         #screen.fill(blue)
         screen.blit(fixedbg, fixedrect)
 

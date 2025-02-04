@@ -2,6 +2,7 @@ import pygame
 import numpy as np
 
 class Motor:
+    
     def __init__(self, player_object,colision_map,layer_map, screen_size=(1024,768)):
         self.player = player_object
         self.map = colision_map
@@ -14,7 +15,7 @@ class Motor:
         self.is_jumping = False
         self.jump_speed = 5
         self.gravity = 0.1
-
+    
     def set_life_manager(self,lifemanager):
         self.life_manager = lifemanager
 
@@ -26,13 +27,17 @@ class Motor:
 
         # Check if out of screen map so return no collide check or superior to map size
         if (self.player.rect.top + self.targetrect.top + dy < 0 or self.player.rect.left + self.targetrect.left + dx < 0 
-            or self.player.rect.top + self.targetrect.top + dy > self.map.size[0] * self.map.tileset.height or self.player.rect.left + self.targetrect.left + dx > self.map.size[1] * self.map.tileset.width):
+            or self.player.rect.top + self.targetrect.top + dy > self.map.size[1] * self.map.tileset.height or self.player.rect.left + self.targetrect.left + dx > self.map.size[0] * self.map.tileset.width):
             return False
 
         map_number =(((self.player.rect.top + self.targetrect.top + dy)// self.map.tileset.height) * self.map.size[0]) + ((self.player.rect.left + self.targetrect.left + dx) // self.map.tileset.width) 
     
         # Supress MirrorV mirror H and rotate value from map_number
         map_number = map_number & 0x00FFFFFF
+
+         # Security for undefined if out of map area (mainly while going down
+        if (map_number >= len(self.map.map)):
+            return False
 
         # GRab tile number to check if it is a block or not
         next_tile = self.map.map[
@@ -45,13 +50,17 @@ class Motor:
 
         # Check if out of screen map so return no collide check or superior to map size
         if (self.player.rect.top + self.targetrect.top + dy < 0 or self.player.rect.left + self.targetrect.left + dx < 0 
-            or self.player.rect.top + self.targetrect.top + dy > self.map.size[0] * self.map.tileset.height or self.player.rect.left + self.targetrect.left + dx > self.map.size[1] * self.map.tileset.width):
+            or self.player.rect.top + self.targetrect.top + dy > self.map.size[1] * self.map.tileset.height or self.player.rect.left + self.targetrect.left + dx > self.map.size[0] * self.map.tileset.width):
             return False
 
         map_number =(((self.player.rect.top + self.targetrect.top + dy)// self.map.tileset.height) * self.map.size[0]) + ((self.player.rect.left + self.targetrect.left + dx) // self.map.tileset.width) 
     
         # Supress MirrorV mirror H and rotate value from map_number
         map_number = map_number & 0x00FFFFFF
+
+        # Security for undefined if out of map area (mainly while going down
+        if (map_number >= len(self.map.map)):
+            return False
 
         # GRab tile number to check if it is a block or not
         next_tile = self.map.map[
@@ -95,7 +104,7 @@ class Motor:
                 self.player.rect[0] += self.speed[0]
                 speedx = 0
                 self.player.set_status(1)
-            elif (self.targetrect[0] >= self.map.size[1] * self.map.tileset.size[0] - self.screen_width): # already block 
+            elif (self.targetrect[0] >= self.map.size[0] * self.map.tileset.size[0] - self.screen_width): # already block 
                 self.player.rect[0] += self.speed[0]
                 speedx = 0
                 self.player.set_status(1)
@@ -125,22 +134,26 @@ class Motor:
             next_tile = self.get_tile(self.player.width // 2,self.player.height)
             if (next_tile > 1): #check bottom
                 # Special tile for jumping ?
-                print(next_tile)
+                #print(next_tile)
                 if (next_tile == 7): # Jump tile
                     self.jump()
                     
                 else:
                     self.speed[1] = speedy = 0
                     self.is_jumping = False
+                    # Round screen and player pos to multiple of `tileheight for smooth npixel alingment
                     self.targetrect[1] =  int(self.targetrect[1] / self.map.tileset.height) * self.map.tileset.height
                     self.player.rect[1] = int(self.player.rect[1] / self.map.tileset.height) * self.map.tileset.height
-            elif (self.player.rect[1] < self.screen_height / 2): #if sprite was on bottopn , let it move to middle
+            elif (self.player.rect[1] < self.screen_height / 2): #if sprite was on up , let it move to middle
+
                 self.player.rect[1] += self.speed[1]
                 self.player.set_status(6)
                 speedy = 0
-            elif (self.targetrect[1] >= self.map.size[0] * self.map.tileset.size[1] - self.screen_height):
-                self.player.rect[1] += self.speed[1]
-                self.player.set_status(6)
+            elif (self.targetrect[1] >= self.map.size[1] * self.map.tileset.size[1] - self.screen_height):
+                # If below screen limit to keep it offscreen but not too far down
+                if (self.player.rect[1] + self.speed[1] < self.screen_height):
+                    self.player.rect[1] += self.speed[1]
+                    self.player.set_status(6)
                 speedy = 0
             else:
                 self.player.set_status(6)

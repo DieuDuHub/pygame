@@ -32,8 +32,8 @@ class Player:
             self.anim.append(img)
         
         self.rect = self.anim[0].get_rect()
-        self.rect.left = 400
-        self.rect.top = 140
+        self.rect.left = 120
+        self.rect.top = 50
         self.rect.width = 32
         self.rect.height = 32
 

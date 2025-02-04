@@ -1,24 +1,74 @@
 import pygame
 import numpy as np
+import time
 
 class Tilemap:
-    def __init__(self, location,tileset, size=(10, 20), rect=None):
+    def __init__(self, location,tileset, size=(10, 20), tile_tjs=None,rect=None):
         self.size = size
         self.tileset = tileset
         self.location = location
         #self.map = np.loadtxt(location, delimiter=',', dtype=int) #np.zeros(size, dtype=int)
+        self.timer = time.time_ns() // 1_000_000 # for animation of tiles
 
         self.map = location
+        self.tile_tjs = tile_tjs
 
-        h, w = self.size
+        # Init tle_anim dict with key of tile and list array of animation and wait time
+        self.tile_anim = {}
+        if self.tile_tjs != None:
+            for i in self.tile_tjs:
+                anim =  []
+                anim.append((0,100)) # First element is the realtime counter with frame and current ms spend
+                for j in i["animation"]:
+                    anim.append((j["tileid"],j["duration"]))
+                self.tile_anim[i["id"]] = anim
+        # Tile animation create a as a dict with :
+        # key = tile number
+        # value = list of tuple with (frame number, time spend in ms) . First value is 0,0 to keep track of current frame and time
+        #print(self.tile_anim)
+
+        w, h = self.size
         self.image = pygame.Surface((self.tileset.size[0]*w, self.tileset.size[1]*h), pygame.SRCALPHA)
         if rect:
             self.rect = pygame.Rect(rect)
         else:
             self.rect = self.image.get_rect()
 
+    # Function to update the tile following ms
+    def render_animation(self):
+        # Calcul time since last iteration
+        current_time = (time.time_ns() // 1_000_000) - self.timer
+        self.timer = time.time_ns() // 1_000_000
+        
+        for ta in self.tile_anim : # Loop over all tile animation
+           # print(self.tile_anim[ta])
+            if (self.tile_anim[ta][0][1] > 0): # if timer not reach
+                self.tile_anim[ta][0] = (self.tile_anim[ta][0][0],self.tile_anim[ta][0][1] - current_time)
+            else: 
+                # Re init current first arraywith corrent value
+                current_frame = self.tile_anim[ta][0][0] + 1 # Next frame
+                if (current_frame >= len(self.tile_anim[ta])): # If end of animation
+                    current_frame = 1 # Restart from 1
+                current_time = self.tile_anim[ta][current_frame][1] # Get time of next frame
+                self.tile_anim[ta][0] = (current_frame,current_time) # Update current frame and time
+                # Manage image updated
+                m, n = self.size[1], self.size[0] #INVERTED
+                # for each tile in map, replace tile image by the new tile of the animation
+                for j in range(m):
+                    for i in range(n):   
+                        
+                        num_tile = self.map[i + self.size[0]* j]
+                        num_tile = num_tile - 1
+
+                        if (num_tile != ta):
+                            continue
+                        
+                        #print(ta, " ", current_frame, " ", self.tile_anim[ta][current_frame][0])
+                        tile = self.tileset.tiles[self.tile_anim[ta][current_frame][0]] #+1 because first tiles = -1
+                        self.image.blit(tile, (i*self.tileset.size[0], j*self.tileset.size[1]))
+
     def render(self):
-        m, n = self.size[0], self.size[1]
+        m, n = self.size[1], self.size[0] #INVERTED
         #for i in range(m):
         #    for j in range(n):
                 #if self.map[i, j] == -1:
